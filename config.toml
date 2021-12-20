@@ -1,0 +1,4 @@
+baseURL = 'http://example.org/'
+languageCode = 'en-us'
+title = 'Tahir Fayyaz Dev Blog'
+theme = 'terminal'
