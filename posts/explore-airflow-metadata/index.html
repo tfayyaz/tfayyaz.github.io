@@ -1,74 +1,611 @@
-<!doctype html><html lang=en>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<title>Explore Airflow Metadata :: Tahir Fayyaz Dev Blog</title>
-<meta charset=utf-8>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=description content="Test The Apache Airflow Metadata databse contains a lot of useful information about DAGs and to get a better understanding of what can be done with access the metadata I carried out some exploratory data analysis after enabling all the example DAGs inclduing in a local install of Airlow.
-Set-up Airflow locally Access the SQLlite Metadata database ">
-<meta name=keywords content=",">
-<meta name=robots content="noodp">
-<link rel=canonical href=https://tfayyaz.github.io/posts/explore-airflow-metadata/>
-<link rel=stylesheet href=https://tfayyaz.github.io/assets/style.css>
-<link rel=stylesheet href=assets/%25!s%28%3cnil%3e%29.css>
-<link rel=apple-touch-icon href=https://tfayyaz.github.io/img/apple-touch-icon-192x192.png>
-<link rel="shortcut icon" href=https://tfayyaz.github.io/img/favicon/orange.png>
-<meta name=twitter:card content="summary">
-<meta property="og:locale" content="en">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Explore Airflow Metadata">
-<meta property="og:description" content="Test The Apache Airflow Metadata databse contains a lot of useful information about DAGs and to get a better understanding of what can be done with access the metadata I carried out some exploratory data analysis after enabling all the example DAGs inclduing in a local install of Airlow.
-Set-up Airflow locally Access the SQLlite Metadata database ">
-<meta property="og:url" content="https://tfayyaz.github.io/posts/explore-airflow-metadata/">
-<meta property="og:site_name" content="Tahir Fayyaz Dev Blog">
-<meta property="og:image" content="https://tfayyaz.github.io/">
+  
+    <title>Analysing the Airflow Metadata Database :: Tahir Fayyaz Dev Blog</title>
+  
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="blah blah blah" />
+<meta name="keywords" content="Apache Airflow, SQLlite" />
+<meta name="robots" content="noodp" />
+<link rel="canonical" href="https://tfayyaz.github.io/posts/explore-airflow-metadata/" />
+
+
+
+
+<link rel="stylesheet" href="https://tfayyaz.github.io/assets/style.css">
+
+  <link rel="stylesheet" href="assets/%25!s%28%3cnil%3e%29.css">
+
+
+
+
+
+
+<link rel="apple-touch-icon" href="https://tfayyaz.github.io/img/apple-touch-icon-192x192.png">
+
+  <link rel="shortcut icon" href="https://tfayyaz.github.io/img/favicon/orange.png">
+
+
+
+<meta name="twitter:card" content="summary" />
+
+
+
+<meta property="og:locale" content="en" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Analysing the Airflow Metadata Database">
+<meta property="og:description" content="blah blah blah" />
+<meta property="og:url" content="https://tfayyaz.github.io/posts/explore-airflow-metadata/" />
+<meta property="og:site_name" content="Tahir Fayyaz Dev Blog" />
+
+  <meta property="og:image" content="https://tfayyaz.github.io/Test%20Cover">
+
 <meta property="og:image:width" content="2048">
 <meta property="og:image:height" content="1024">
-<meta property="article:published_time" content="2021-12-20 14:43:41 +0000 UTC">
+
+
+  <meta property="article:published_time" content="2021-12-20 14:43:41 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+
+
 </head>
-<body>
+<body class="">
+
+
 <div class="container headings--one-size">
-<header class=header>
-<div class=header__inner>
-<div class=header__logo>
-<a href=https://tfayyaz.github.io/>
-<div class=logo>
-Terminal
-</div>
+
+  <header class="header">
+  <div class="header__inner">
+    <div class="header__logo">
+      <a href="https://tfayyaz.github.io/">
+  <div class="logo">
+    Terminal
+  </div>
 </a>
-</div>
-</div>
+
+    </div>
+    
+  </div>
+  
 </header>
-<div class=content>
-<div class=post>
-<h1 class=post-title>
-<a href=https://tfayyaz.github.io/posts/explore-airflow-metadata/>Explore Airflow Metadata</a></h1>
-<div class=post-meta>
-<span class=post-date>
-2021-12-20
-</span>
+
+
+  <div class="content">
+    
+<div class="post">
+  <h1 class="post-title">
+    <a href="https://tfayyaz.github.io/posts/explore-airflow-metadata/">Analysing the Airflow Metadata Database</a></h1>
+  <div class="post-meta">
+    
+      <span class="post-date">
+        2021-12-20
+        
+      </span>
+    
+    
+      <span class="post-author">:: Tahir Fayyaz</span>
+    
+    
+  </div>
+
+  
+  <span class="post-tags">
+    
+    #<a href="https://tfayyaz.github.io/tags/apache-airflow/">apache-airflow</a>&nbsp;
+    
+    #<a href="https://tfayyaz.github.io/tags/sql/">sql</a>&nbsp;
+    
+  </span>
+  
+  
+  <img src="https://tfayyaz.github.io/Test%20Cover"
+    class="post-cover"
+    alt="Analysing the Airflow Metadata Database"
+    title="Cover Image" />
+
+
+  
+
+  <div class="post-content"><div>
+        <p>Data quality monitoring and observabilty is a growing space [<a href="https://www.castordoc.com/blog/data-monitoring-and-observability">1</a>, <a href="https://notion.castordoc.com/catalog-of-data-quality">2</a>, <a href="https://www.metaplane.dev/state-of-data-quality-monitoring-2021">3</a>] in data and analytics engineering and following this trend lead me to explore some of the ways you can extract metadata and logs from popular data tools. The first tool, Apache Airflow, is one I have used for a few years and so I knew the Airflow metadata database contains a lot of useful information about DAGs, operators, job runs and users. To showcase what is possible and also to get a better understanding of what can be done with access to the metadata I set-up a local Airflow instance, enabled some of the example DAGs included and carried out some exploratory data analysis which is all shared below.</p>
+<p>An important note is that what you install Airflow locally using pip it uses a SQLite database which is perfect for tests like this but for production your metadata database will most likely using MySQL or Postgres, as is recomended by Airflow. The good news is that the schema of the databases will be the same and so a lot of these SQL queries should eaisly port over.</p>
+<p>For these tests I am going to use Airflow 2.0.2 as that is the version used by</p>
+<h2 id="set-up-airflow-locally-using-docker">Set-up Airflow locally using Docker<a href="#set-up-airflow-locally-using-docker" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">mkdir airflow-2-0-2
+cd airflow-2-0-2
+</code></pre></div><p>Follow all the instructions here to get Airflow and Docker up and running. The Airflow community have really made it simple and fast now - <a href="https://airflow.apache.org/docs/apache-airflow/2.0.2/start/docker.html">https://airflow.apache.org/docs/apache-airflow/2.0.2/start/docker.html</a></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">curl -LfO <span style="color:#e6db74">&#39;https://airflow.apache.org/docs/apache-airflow/2.0.2/docker-compose.yaml&#39;</span>
+</code></pre></div><p>In <code>docker-composer.yaml</code> change <code>AIRFLOW__CORE__LOAD_EXAMPLES: 'true'</code> to <code>AIRFLOW__CORE__LOAD_EXAMPLES: 'false'</code> to avoid loading all the example DAGs.</p>
+<ul>
+<li>image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.0.1}</li>
+</ul>
+<ul>
+<li>image: ${AIRFLOW_IMAGE_NAME:-apache/airflow:2.0.1-python3.8}</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker-compose up airflow-init
+</code></pre></div><p>After this you should see:</p>
+<pre tabindex="0"><code>airflow-init_1       | Upgrades done
+airflow-init_1       | Admin user airflow created
+airflow-init_1       | 2.0.2
+start_airflow-init_1 exited with code 0
+</code></pre><h3 id="enable-dags">Enable DAGs<a href="#enable-dags" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Enable the following DAGs:</p>
+<ul>
+<li>1</li>
+<li>
+<ol start="2">
+<li>DAG</li>
+</ol>
+</li>
+<li>3 dag</li>
+</ul>
+<h3 id="list-dags">List DAGs<a href="#list-dags" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker-compose run airflow-worker airflow dags list
+</code></pre></div><h3 id="view-dag-tree">View DAG tree<a href="#view-dag-tree" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker-compose run airflow-worker airflow dags show example_bash_operator
+</code></pre></div><h3 id="run-back-fill-for-dags">Run back-fill for DAGs<a href="#run-back-fill-for-dags" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker-compose run airflow-worker airflow dags backfill <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --start-date <span style="color:#e6db74">&#39;2021-11-01&#39;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --end-date <span style="color:#e6db74">&#39;2021-12-01&#39;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    example_bash_operator
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker-compose run airflow-worker airflow dags backfill <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --start-date <span style="color:#e6db74">&#39;2021-12-01&#39;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    --end-date <span style="color:#e6db74">&#39;2021-12-07&#39;</span> <span style="color:#ae81ff">\
+</span><span style="color:#ae81ff"></span>    example_subdag_operator
+</code></pre></div><h3 id="access-postgres-cli">Access Postgres CLI<a href="#access-postgres-cli" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Check Postgres is running and get conatiner name</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker ps
+</code></pre></div><p>This can be done using:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">docker exec -ti airflow-2-0-2_postgres_1 psql -U airflow
+docker exec -ti &lt;CONTAINER_NAME&gt; psql -U airflow
+docker-compose run airflow-worker airflow db shell
+</code></pre></div><p>Since Airflow 2.2 it seems it is even easier to get Airflow running locally.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">airflow setup
+mkdir airflow
+cd airflow
+python3 -m venv env
+source env/bin/activate
+
+<span style="color:#75715e"># AIRFLOW_HOME=$(pwd)</span>
+export AIRFLOW_HOME<span style="color:#f92672">=</span>~/airflow_dev/airflow
+export AIRFLOW_HOME<span style="color:#f92672">=</span>~/test_airflow/airflow
+
+<span style="color:#75715e"># Install Airflow using the constraints file</span>
+AIRFLOW_VERSION<span style="color:#f92672">=</span>2.2.2
+
+PYTHON_VERSION<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>python --version | cut -d <span style="color:#e6db74">&#34; &#34;</span> -f <span style="color:#ae81ff">2</span> | cut -d <span style="color:#e6db74">&#34;.&#34;</span> -f 1-2<span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span>
+<span style="color:#75715e"># For example: 3.6</span>
+CONSTRAINT_URL<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;https://raw.githubusercontent.com/apache/airflow/constraints-</span><span style="color:#e6db74">${</span>AIRFLOW_VERSION<span style="color:#e6db74">}</span><span style="color:#e6db74">/constraints-</span><span style="color:#e6db74">${</span>PYTHON_VERSION<span style="color:#e6db74">}</span><span style="color:#e6db74">.txt&#34;</span>
+<span style="color:#75715e"># For example: https://raw.githubusercontent.com/apache/airflow/constraints-2.2.2/constraints-3.6.txt</span>
+pip install <span style="color:#e6db74">&#34;apache-airflow==</span><span style="color:#e6db74">${</span>AIRFLOW_VERSION<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span> --constraint <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">${</span>CONSTRAINT_URL<span style="color:#e6db74">}</span><span style="color:#e6db74">&#34;</span>
+
+airflow standalone
+</code></pre></div><p>Once you run <code>airflow standalone</code> you will get a URL to access the webserver and log-in details as follows:</p>
+<pre tabindex="0"><code>standalone | 
+standalone | Airflow is ready
+standalone | Login with username: admin  password: xn10gGz4FaqztzK
+standalone | Airflow Standalone is for development purposes only. Do not use this in production!
+standalone | 
+</code></pre><p>The constraints in the constraint.txt file are only installed if a package requires them, and are ignored otherwise.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">airflow setup
+mkdir airflow
+cd airflow
+pipenv --python 3.8
+pipenv shell
+export AIRFLOW_HOME<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>pwd<span style="color:#66d9ef">)</span>
+pipenv install apache-airflow<span style="color:#f92672">==</span>2.1.0
+pipenv install apache-airflow-providers-databricks
+mkdir dags
+airflow db init
+airflow users create --username admin --firstname &lt;firstname&gt; --lastname &lt;lastname&gt; --role Admin --email your@email.com
+</code></pre></div><h2 id="copy-some-of-the-example-dags">Copy some of the example DAGs<a href="#copy-some-of-the-example-dags" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<pre tabindex="0"><code>export AIRFLOW_HOME=~/airflow_dev/airflow
+export AIRFLOW_HOME=~/test_airflow/airflow
+cd ~/test_airflow/airflow
+mkdir dags
+</code></pre><h2 id="access-the-postgres-database">Access the Postgres Database<a href="#access-the-postgres-database" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<h2 id="change-postgres-settings-to-show-full-output">Change Postgres settings to show full output<a href="#change-postgres-settings-to-show-full-output" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>\pset pager off</p>
+<h2 id="access-the-sqllite-metadata-database">Access the SQLlite Metadata database<a href="#access-the-sqllite-metadata-database" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<p>Open a new shell terminal tab and start the virtual env</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">source env/bin/activate
+</code></pre></div><p>Locally it&rsquo;s as simple as running the following cmd</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">airflow db shell
+</code></pre></div><p>set headers to on</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">.<span style="color:#66d9ef">mode</span> <span style="color:#66d9ef">column</span>
+.headers <span style="color:#66d9ef">on</span>
+</code></pre></div><h2 id="explore-and-analyse-airflow-metadata">Explore and analyse Airflow Metadata<a href="#explore-and-analyse-airflow-metadata" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<h3 id="view-all-tables-in-database">View all tables in database<a href="#view-all-tables-in-database" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">.tables
+</code></pre></div><p>output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">ab_permission                  import_error                 
+ab_permission_view             job                          
+ab_permission_view_role        log                          
+ab_register_user               rendered_task_instance_fields
+ab_role                        sensor_instance              
+ab_user                        serialized_dag               
+ab_user_role                   sla_miss                     
+ab_view_menu                   slot_pool                    
+alembic_version                task_fail                    
+connection                     task_instance                
+dag                            task_reschedule              
+dag_code                       trigger                      
+dag_pickle                     variable                     
+dag_run                        xcom                         
+dag_tag                         
+</code></pre></div><h3 id="view-schema-of-a-table">View schema of a table<a href="#view-schema-of-a-table" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>This is useful to also see how the tables can be joined with other tables based the <code>FOREIGN KEYS</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">.<span style="color:#66d9ef">schema</span> task_instance
+</code></pre></div><p>Output:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">TABLE</span> <span style="color:#66d9ef">IF</span> <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">EXISTS</span> <span style="color:#e6db74">&#34;task_instance&#34;</span> (
+	task_id VARCHAR(<span style="color:#ae81ff">250</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>, 
+	dag_id VARCHAR(<span style="color:#ae81ff">250</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>, 
+	start_date DATETIME, 
+	end_date DATETIME, 
+	duration FLOAT, 
+	<span style="color:#66d9ef">state</span> VARCHAR(<span style="color:#ae81ff">20</span>), 
+	try_number INTEGER, 
+	hostname VARCHAR(<span style="color:#ae81ff">1000</span>), 
+	unixname VARCHAR(<span style="color:#ae81ff">1000</span>), 
+	job_id INTEGER, 
+	pool VARCHAR(<span style="color:#ae81ff">256</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>, 
+	queue VARCHAR(<span style="color:#ae81ff">256</span>), 
+	priority_weight INTEGER, 
+	<span style="color:#66d9ef">operator</span> VARCHAR(<span style="color:#ae81ff">1000</span>), 
+	queued_dttm DATETIME, 
+	pid INTEGER, 
+	max_tries INTEGER <span style="color:#66d9ef">DEFAULT</span> <span style="color:#e6db74">&#39;-1&#39;</span>, 
+	executor_config BLOB, 
+	pool_slots INTEGER <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>, 
+	queued_by_job_id INTEGER, 
+	external_executor_id VARCHAR(<span style="color:#ae81ff">250</span>), 
+	trigger_id INTEGER, 
+	trigger_timeout DATETIME, 
+	next_method VARCHAR(<span style="color:#ae81ff">1000</span>), 
+	next_kwargs JSON, 
+	run_id VARCHAR(<span style="color:#ae81ff">250</span>) <span style="color:#66d9ef">NOT</span> <span style="color:#66d9ef">NULL</span>, 
+	<span style="color:#66d9ef">CONSTRAINT</span> task_instance_pkey <span style="color:#66d9ef">PRIMARY</span> <span style="color:#66d9ef">KEY</span> (dag_id, task_id, run_id), 
+	<span style="color:#66d9ef">CONSTRAINT</span> task_instance_trigger_id_fkey <span style="color:#66d9ef">FOREIGN</span> <span style="color:#66d9ef">KEY</span>(trigger_id) <span style="color:#66d9ef">REFERENCES</span> <span style="color:#e6db74">&#34;trigger&#34;</span> (id) <span style="color:#66d9ef">ON</span> <span style="color:#66d9ef">DELETE</span> <span style="color:#66d9ef">CASCADE</span>, 
+	<span style="color:#66d9ef">CONSTRAINT</span> task_instance_dag_run_fkey <span style="color:#66d9ef">FOREIGN</span> <span style="color:#66d9ef">KEY</span>(dag_id, run_id) <span style="color:#66d9ef">REFERENCES</span> dag_run (dag_id, run_id) <span style="color:#66d9ef">ON</span> <span style="color:#66d9ef">DELETE</span> <span style="color:#66d9ef">CASCADE</span>
+);
+<span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> ti_dag_state <span style="color:#66d9ef">ON</span> task_instance (dag_id, <span style="color:#66d9ef">state</span>);
+<span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> ti_state <span style="color:#66d9ef">ON</span> task_instance (<span style="color:#66d9ef">state</span>);
+<span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> ti_trigger_id <span style="color:#66d9ef">ON</span> task_instance (trigger_id);
+<span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> ti_pool <span style="color:#66d9ef">ON</span> task_instance (pool, <span style="color:#66d9ef">state</span>, priority_weight);
+<span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> ti_job_id <span style="color:#66d9ef">ON</span> task_instance (job_id);
+<span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> ti_dag_run <span style="color:#66d9ef">ON</span> task_instance (dag_id, run_id);
+<span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> ti_state_lkp <span style="color:#66d9ef">ON</span> task_instance (dag_id, task_id, run_id, <span style="color:#66d9ef">state</span>);
+</code></pre></div><h2 id="queries">Queries<a href="#queries" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h2>
+<ul>
+<li>Most Used Operators - DONE</li>
+<li>Longest Running DAGs - DONE</li>
+<li>DAG run time by slot - DONE</li>
+<li>No of DAGs using xcom</li>
+<li>No of DAGs using sensors</li>
+<li>Cross DAG dependencies</li>
+</ul>
+<h3 id="show-all-dag-ids-and-operator-name">Show all dag IDs and operator name<a href="#show-all-dag-ids-and-operator-name" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> dag_id, <span style="color:#66d9ef">operator</span> <span style="color:#66d9ef">from</span> task_instance <span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> dag_id, <span style="color:#66d9ef">operator</span>;
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">sqlite&gt; <span style="color:#66d9ef">select</span> dag_id, operator from task_instance group by dag_id, operator;
+
+</code></pre></div><p>Result:</p>
+<table>
+<thead>
+<tr>
+<th>airflow_profiler</th>
+<th>SqliteOperator</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>example_bash_operator</td>
+<td>BashOperator</td>
+</tr>
+<tr>
+<td>example_bash_operator</td>
+<td>DummyOperator</td>
+</tr>
+<tr>
+<td>example_external_task_marker_child</td>
+<td>DummyOperator</td>
+</tr>
+<tr>
+<td>example_external_task_marker_child</td>
+<td>ExternalTaskSensor</td>
+</tr>
+<tr>
+<td>example_external_task_marker_parent</td>
+<td>ExternalTaskMarker</td>
+</tr>
+<tr>
+<td>example_subdag_operator</td>
+<td>DummyOperator</td>
+</tr>
+<tr>
+<td>example_subdag_operator</td>
+<td>SubDagOperator</td>
+</tr>
+<tr>
+<td>example_subdag_operator.section-1</td>
+<td>DummyOperator</td>
+</tr>
+<tr>
+<td>example_task_group</td>
+<td>BashOperator</td>
+</tr>
+<tr>
+<td>example_task_group</td>
+<td>DummyOperator</td>
+</tr>
+<tr>
+<td>example_trigger_controller_dag</td>
+<td>TriggerDagRunOperator</td>
+</tr>
+<tr>
+<td>example_trigger_target_dag</td>
+<td>BashOperator</td>
+</tr>
+<tr>
+<td>example_trigger_target_dag</td>
+<td>PythonOperator</td>
+</tr>
+<tr>
+<td>example_xcom</td>
+<td>PythonOperator</td>
+</tr>
+<tr>
+<td>latest_only_with_trigger</td>
+<td>DummyOperator</td>
+</tr>
+<tr>
+<td>latest_only_with_trigger</td>
+<td>LatestOnlyOperator</td>
+</tr>
+</tbody>
+</table>
+<h3 id="show-most-popular-operators">Show most popular operators<a href="#show-most-popular-operators" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<pre tabindex="0"><code>select operator, count(distinct dag_id) from task_instance group by operator;
+</code></pre><p>Result:</p>
+<table>
+<thead>
+<tr>
+<th>operator</th>
+<th>count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BashOperator</td>
+<td>4</td>
+</tr>
+<tr>
+<td>BranchDateTimeOperator</td>
+<td>1</td>
+</tr>
+<tr>
+<td>BranchDayOfWeekOperator</td>
+<td>1</td>
+</tr>
+<tr>
+<td>BranchPythonOperator</td>
+<td>3</td>
+</tr>
+<tr>
+<td>DummyOperator</td>
+<td>12</td>
+</tr>
+<tr>
+<td>DummySkipOperator</td>
+<td>1</td>
+</tr>
+<tr>
+<td>PythonOperator</td>
+<td>2</td>
+</tr>
+<tr>
+<td>ShortCircuitOperator</td>
+<td>1</td>
+</tr>
+<tr>
+<td>SubDagOperator</td>
+<td>1</td>
+</tr>
+<tr>
+<td>TriggerDagRunOperator</td>
+<td>1</td>
+</tr>
+<tr>
+<td>_PythonDecoratedOperator</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="longest-running-dags-last-30-days">Longest running DAGs last 30 days<a href="#longest-running-dags-last-30-days" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">with</span> dag_succesful_runs <span style="color:#66d9ef">as</span> (
+  <span style="color:#66d9ef">select</span>
+    date(start_date) <span style="color:#66d9ef">as</span> run_date,
+    dag_id,
+    <span style="color:#66d9ef">cast</span> (
+      (
+        julianday(end_date) <span style="color:#f92672">-</span> julianday(start_date)
+      ) <span style="color:#f92672">*</span> <span style="color:#ae81ff">24</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span> <span style="color:#66d9ef">as</span> integer
+    ) <span style="color:#66d9ef">as</span> dag_run_microseconds
+  <span style="color:#66d9ef">from</span>
+    dag_run
+  <span style="color:#66d9ef">where</span>
+    start_date <span style="color:#f92672">&gt;</span> datetime(<span style="color:#e6db74">&#39;now&#39;</span>, <span style="color:#e6db74">&#39;-30 day&#39;</span>)
+    <span style="color:#66d9ef">and</span> <span style="color:#66d9ef">state</span> <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;success&#39;</span>
+)
+<span style="color:#66d9ef">select</span>
+  dag_id,
+  <span style="color:#66d9ef">count</span>(dag_id) <span style="color:#66d9ef">as</span> no_dag_runs,
+  <span style="color:#66d9ef">sum</span>(dag_run_microseconds) <span style="color:#f92672">/</span> <span style="color:#ae81ff">1000</span> <span style="color:#f92672">/</span> <span style="color:#ae81ff">1000</span> <span style="color:#66d9ef">as</span> sum_run_time,
+  <span style="color:#66d9ef">avg</span>(dag_run_microseconds) <span style="color:#f92672">/</span> <span style="color:#ae81ff">1000</span> <span style="color:#f92672">/</span> <span style="color:#ae81ff">1000</span> <span style="color:#66d9ef">as</span> avg_run_time
+<span style="color:#66d9ef">from</span>
+  dag_succesful_runs
+<span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span>
+  dag_id
+<span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span>
+  avg_run_time <span style="color:#66d9ef">desc</span>;
+</code></pre></div><h3 id="show-total-and-avg-time-for-each-dag">Show total and avg time for each dag<a href="#show-total-and-avg-time-for-each-dag" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">from</span> dag_run <span style="color:#66d9ef">where</span> dag_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;schedule_external_task_marker_parent_v2&#39;</span>;
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> dag_id, (end_date <span style="color:#f92672">-</span> start_date) <span style="color:#66d9ef">as</span> task_time <span style="color:#66d9ef">from</span> dag_run <span style="color:#66d9ef">where</span> dag_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;example_bash_operator&#39;</span>;
+</code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> dag_id, 
+<span style="color:#66d9ef">cast</span> ((
+    julianday(end_date) <span style="color:#f92672">-</span> julianday(start_date)
+) <span style="color:#f92672">*</span> <span style="color:#ae81ff">24</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#66d9ef">as</span> integer) <span style="color:#66d9ef">as</span> dag_run_seconds
+<span style="color:#66d9ef">from</span> dag_run <span style="color:#66d9ef">where</span> dag_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;schedule_external_task_marker_parent_v2&#39;</span>;
+</code></pre></div><h3 id="calculate-task-run-time-in-milliseconds">Calculate task run time in milliseconds<a href="#calculate-task-run-time-in-milliseconds" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span> dag_id, task_id, end_date, julianday(end_date), start_date,
+<span style="color:#66d9ef">cast</span> ((
+    julianday(end_date) <span style="color:#f92672">-</span> julianday(start_date)
+) <span style="color:#f92672">*</span> <span style="color:#ae81ff">24</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span> <span style="color:#66d9ef">as</span> integer) <span style="color:#66d9ef">as</span> task_run_milliseconds,
+duration <span style="color:#66d9ef">as</span> task_duration
+<span style="color:#66d9ef">from</span> task_instance <span style="color:#66d9ef">where</span> dag_id <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;schedule_external_task_marker_parent_v2&#39;</span>;
+</code></pre></div><h3 id="show-total-dag-run-time-per-day">Show total DAG run time per day<a href="#show-total-dag-run-time-per-day" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">select</span>
+  dag_run_date,
+  <span style="color:#66d9ef">sum</span>(dag_run_seconds) <span style="color:#66d9ef">as</span> total_run_seconds
+<span style="color:#66d9ef">from</span>
+  (
+    <span style="color:#66d9ef">select</span>
+      date(start_date) <span style="color:#66d9ef">as</span> dag_run_date,
+      <span style="color:#66d9ef">cast</span> (
+        (julianday(end_date) <span style="color:#f92672">-</span> julianday(start_date)) <span style="color:#f92672">*</span> <span style="color:#ae81ff">24</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#66d9ef">as</span> integer
+      ) <span style="color:#66d9ef">as</span> dag_run_seconds
+    <span style="color:#66d9ef">from</span>
+      dag_run
+  );
+</code></pre></div><h3 id="show-total-dag-time-per-slot-pool">Show total DAG time per slot pool<a href="#show-total-dag-time-per-slot-pool" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>The pool used is not avaiable in the <code>dag_run</code> table so you need to use the <code>task_instance</code> table which also has the task duration calculated.</p>
+<p>Postgres:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">
+<span style="color:#66d9ef">select</span>
+  pool,
+  dag_id <span style="color:#f92672">||</span> <span style="color:#e6db74">&#39;_&#39;</span> <span style="color:#f92672">||</span> job_id <span style="color:#66d9ef">as</span> dag_job_id,
+  <span style="color:#66d9ef">min</span>(start_date) <span style="color:#66d9ef">as</span> min_start_date,
+  <span style="color:#66d9ef">max</span>(end_date) <span style="color:#66d9ef">as</span> max_end_date
+<span style="color:#66d9ef">from</span>
+  task_instance
+<span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> pool, dag_job_id
+<span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> dag_job_id;
+
+
+<span style="color:#66d9ef">select</span>
+  pool,
+  concat_ws(<span style="color:#e6db74">&#39;_&#39;</span>, dag_id, run_id) <span style="color:#66d9ef">as</span> dag_run_id,
+  <span style="color:#66d9ef">min</span>(start_date) <span style="color:#66d9ef">as</span> min_start_date,
+  <span style="color:#66d9ef">max</span>(end_date) <span style="color:#66d9ef">as</span> max_end_date
+<span style="color:#66d9ef">from</span>
+  task_instance
+<span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> dag_run_id
+<span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> dag_run_id;
+</code></pre></div><pre tabindex="0"><code>     pool     |          dag_job_id           |        min_start_date         | 
+        max_end_date          
+--------------+-------------------------------+-------------------------------+-
+------------------------------
+ default_pool | example_bash_operator_10      | 2021-12-23 12:06:27.895559+00 | 
+2021-12-23 12:06:28.070771+00
+ default_pool | example_bash_operator_11      | 2021-12-23 12:06:29.299855+00 | 
+2021-12-23 12:06:29.502291+00
+ default_pool | example_bash_operator_2       | 2021-12-23 12:06:25.655889+00 | 
+2021-12-23 12:06:27.223989+00
+ default_pool | example_bash_operator_3       | 2021-12-23 12:06:25.685703+00 | 
+2021-12-23 12:06:27.278723+00
+ default_pool | example_bash_operator_4       | 2021-12-23 12:06:25.780904+00 | 
+2021-12-23 12:06:27.426265+00
+ default_pool | example_bash_operator_5       | 2021-12-23 12:06:25.837548+00 | 
+2021-12-23 12:06:26.413039+00
+ default_pool | example_bash_operator_6       | 2021-12-23 12:06:26.7895+00   | 
+2021-12-23 12:06:27.117059+00
+ default_pool | example_bash_operator_7       | 2021-12-23 12:06:26.806193+00 | 
+2021-12-23 12:06:28.134296+00
+ default_pool | example_bash_operator_8       | 2021-12-23 12:06:26.825538+00 | 
+2021-12-23 12:06:28.159168+00
+ default_pool | example_bash_operator_9       | 2021-12-23 12:06:26.85047+00  |
+
+</code></pre><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">with</span> dag_runs <span style="color:#66d9ef">as</span> (
+<span style="color:#66d9ef">select</span>
+  pool,
+  dag_id <span style="color:#f92672">||</span> <span style="color:#e6db74">&#34;_&#34;</span> <span style="color:#f92672">||</span> run_id <span style="color:#66d9ef">as</span> dag_run_id,
+  <span style="color:#66d9ef">min</span>(start_date) <span style="color:#66d9ef">as</span> min_start_date,
+  <span style="color:#66d9ef">max</span>(end_date) <span style="color:#66d9ef">as</span> max_end_date
+<span style="color:#66d9ef">from</span>
+  task_instance
+<span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> pool, dag_run_id
+<span style="color:#66d9ef">order</span> <span style="color:#66d9ef">by</span> dag_run_id
+),
+dag_run_times <span style="color:#66d9ef">as</span> (
+<span style="color:#66d9ef">select</span> 
+  pool,
+  min_start_date,
+  max_end_date,
+  <span style="color:#66d9ef">cast</span> ((
+    julianday(max_end_date) <span style="color:#f92672">-</span> julianday(min_start_date)
+) <span style="color:#f92672">*</span> <span style="color:#ae81ff">24</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#66d9ef">as</span> integer) <span style="color:#66d9ef">as</span> dag_run_seconds,
+  <span style="color:#66d9ef">cast</span> ((
+    julianday(max_end_date) <span style="color:#f92672">-</span> julianday(min_start_date)
+) <span style="color:#f92672">*</span> <span style="color:#ae81ff">24</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span> <span style="color:#66d9ef">as</span> integer) <span style="color:#66d9ef">as</span> dag_run_milli_seconds,
+  <span style="color:#66d9ef">cast</span> ((
+    julianday(max_end_date) <span style="color:#f92672">-</span> julianday(min_start_date)
+) <span style="color:#f92672">*</span> <span style="color:#ae81ff">24</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">60</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span> <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span> <span style="color:#66d9ef">as</span> integer) <span style="color:#66d9ef">as</span> dag_run_micro_seconds
+<span style="color:#66d9ef">from</span> dag_runs
+)
+
+<span style="color:#66d9ef">select</span> 
+  date(min_start_date) <span style="color:#66d9ef">as</span> run_date,
+  pool,
+  <span style="color:#66d9ef">sum</span>(dag_run_micro_seconds) <span style="color:#f92672">/</span> <span style="color:#ae81ff">1000</span> <span style="color:#f92672">/</span> <span style="color:#ae81ff">1000</span> <span style="color:#66d9ef">as</span> dag_run_seconds
+<span style="color:#66d9ef">from</span> dag_run_times
+<span style="color:#66d9ef">group</span> <span style="color:#66d9ef">by</span> run_date, pool
+;
+</code></pre></div><h3 id="analysing-sensors">Analysing sensors<a href="#analysing-sensors" class="hanchor" ariaLabel="Anchor">&#8983;</a> </h3>
+<p>Run the DAG example_external_task_marker_child manually and wait for 30 seconds then run the DAG example_external_task_marker_parent as this</p>
+
+      </div></div>
+
+  
+
+  
+
 </div>
-<span class=post-tags>
-#<a href=https://tfayyaz.github.io/tags/></a>&nbsp;
-#<a href=https://tfayyaz.github.io/tags/></a>&nbsp;
-</span>
-<div class=post-content><div>
-<h1 id=test>Test<a href=#test class=hanchor arialabel=Anchor>&#8983;</a> </h1>
-<p>The Apache Airflow Metadata databse contains a lot of useful information about DAGs and to get a better understanding of what can be done with access the metadata I carried out some exploratory data analysis after enabling all the example DAGs inclduing in a local install of Airlow.</p>
-<h2 id=set-up-airflow-locally>Set-up Airflow locally<a href=#set-up-airflow-locally class=hanchor arialabel=Anchor>&#8983;</a> </h2>
-<h2 id=access-the-sqllite-metadata-database>Access the SQLlite Metadata database<a href=#access-the-sqllite-metadata-database class=hanchor arialabel=Anchor>&#8983;</a> </h2>
-</div></div>
-</div>
-</div>
-<footer class=footer>
-<div class=footer__inner>
-<div class=copyright>
-<span>© 2021 Powered by <a href=http://gohugo.io>Hugo</a></span>
-<span>:: Theme made by <a href=https://twitter.com/panr>panr</a></span>
-</div>
-</div>
+
+  </div>
+
+  
+    <footer class="footer">
+  <div class="footer__inner">
+    
+      <div class="copyright">
+        <span>© 2021 Powered by <a href="http://gohugo.io">Hugo</a></span>
+    
+        <span>:: Theme made by <a href="https://twitter.com/panr">panr</a></span>
+      </div>
+  </div>
 </footer>
-<script src=https://tfayyaz.github.io/assets/main.js></script>
-<script src=https://tfayyaz.github.io/assets/prism.js></script>
+
+<script src="https://tfayyaz.github.io/assets/main.js"></script>
+<script src="https://tfayyaz.github.io/assets/prism.js"></script>
+
+
+
+
+
+
+
+  
 </div>
+
 </body>
 </html>
