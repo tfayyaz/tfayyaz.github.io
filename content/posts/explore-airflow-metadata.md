@@ -82,6 +82,13 @@ docker-compose run airflow-worker airflow dags backfill \
 
 ```bash
 docker-compose run airflow-worker airflow dags backfill \
+    --start-date '2021-10-01' \
+    --end-date '2021-11-01' \
+    example_bash_operator
+```
+
+```bash
+docker-compose run airflow-worker airflow dags backfill \
     --start-date '2021-12-01' \
     --end-date '2021-12-07' \
     example_subdag_operator
@@ -102,6 +109,17 @@ docker exec -ti airflow-2-0-2_postgres_1 psql -U airflow
 docker exec -ti <CONTAINER_NAME> psql -U airflow
 docker-compose run airflow-worker airflow db shell
 ```
+
+## Check Database size
+
+```
+\l+
+```
+
+select table_name, pg_relation_size(quote_ident(table_name))
+from information_schema.tables
+where table_schema = 'public'
+order by 1;
 
 Since Airflow 2.2 it seems it is even easier to get Airflow running locally.
 
